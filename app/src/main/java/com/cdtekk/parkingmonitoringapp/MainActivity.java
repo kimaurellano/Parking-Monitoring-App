@@ -1,15 +1,21 @@
 package com.cdtekk.parkingmonitoringapp;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,12 +29,15 @@ public class MainActivity extends AppCompatActivity {
     private ImageView sensor4;
     private ImageView sensor5;
     private ImageView btnExit;
+    private TextView slotCountText;
+    private int slotCount = 40;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        slotCountText = findViewById(R.id.slotCountText);
         sensor1 = findViewById(R.id.sensor1);
         sensor2 = findViewById(R.id.sensor2);
         sensor3 = findViewById(R.id.sensor3);
@@ -38,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference("/sensor");
 
         mDatabase.addValueEventListener(new ValueEventListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Integer sensor1State = snapshot.child("slot_1").getValue(Integer.class);
@@ -55,6 +65,17 @@ public class MainActivity extends AppCompatActivity {
                 Integer sensor5State = snapshot.child("slot_5").getValue(Integer.class);
                 sensor5.setImageDrawable(sensor5State > 0 ?
                         getDrawable(R.drawable.ic_occupied) : getDrawable(R.drawable.ic_unoccupied));
+
+                int slotCount = 40;
+                if(snapshot.exists()){
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        int state = dataSnapshot.getValue(Integer.class);
+                        if (state > 0){
+                            slotCount--;
+                            slotCountText.setText(Integer.toString(slotCount));
+                        }
+                    }
+                }
             }
 
             @Override
